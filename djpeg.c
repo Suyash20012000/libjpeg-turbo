@@ -835,7 +835,7 @@ main(int argc, char **argv)
 #endif
 
 /* self demo code <--not part of official libjpeg */
-unsigned long decode_jpeg(unsigned char *in_buf,unsigned long in_buf_sz,unsigned char *out_buf)
+unsigned long decode_jpeg(unsigned char *in_buf, unsigned long in_buf_sz, unsigned char *out_buf)
 {
   unsigned long out_buf_sz;
   struct jpeg_decompress_struct cinfo;

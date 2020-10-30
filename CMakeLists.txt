@@ -57,5 +57,5 @@ idf_component_register(SRCS "jcapimin.c"
                             "jdarith.c"
                             "jsimd_none.c"
 
-                       INCLUDE_DIRS ""
+                       INCLUDE_DIRS "."
                        )
