@@ -30,7 +30,6 @@
 #endif
 #include "jmorecfg.h"           /* seldom changed options */
 
-
 #ifdef __cplusplus
 #ifndef DONT_USE_EXTERN_C
 extern "C" {
@@ -1065,8 +1064,7 @@ EXTERN(boolean) jpeg_resync_to_restart(j_decompress_ptr cinfo, int desired);
 /* Read ICC profile.  See libjpeg.txt for usage information. */
 EXTERN(boolean) jpeg_read_icc_profile(j_decompress_ptr cinfo,
                                       JOCTET **icc_data_ptr,
-                                      unsigned int *icc_data_len);
-
+                                      unsigned int *icc_data_len);           
 
 /* These marker codes are exported since applications and data source modules
  * are likely to want to use them.
