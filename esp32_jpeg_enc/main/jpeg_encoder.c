@@ -15,63 +15,65 @@
 
 #include "esp_audio_mem.h"
 #include "smtp_client.h"
+#include "encoder.h"
 
 static const char *TAG = "jpeg_enc";
 
-extern const uint8_t raw_image_start[] asm("_binary_raw_image_start");
-extern const uint8_t raw_image_end[]   asm("_binary_raw_image_end");
+extern uint8_t raw_image_start[] asm("_binary_raw_img_start");
+extern uint8_t raw_image_end[]   asm("_binary_raw_img_end");
 
-/* Introduced by ESP. Encode raw mono-chrome image */
-int encode_greyscale(unsigned char *in_buf, unsigned char *out_buf,
-                     unsigned long *out_buf_sz,
-                     int image_width, int image_height);
-
-const int image_height = 96;
-const int image_width = 96;
-unsigned long out_buf_sz = image_width * image_height * 4;
-unsigned char input_buffer[96 * 96];
-unsigned char output_buffer[96 * 96 * 4];
-
+#define IMAGE_HEIGHT 94
+#define IMAGE_WIDTH 94
+#define QUALITY 500
 static void jpeg_encoder_task(void *pvParameters)
 {
     (void) pvParameters;
 
-    /* Fill in image data. Random numbers for now. */
-    //for (int i = 0; i < image_width * image_height; i++) {
-    //    input_buffer[i] = raw_image_start[i];
-    //}
-
+    int ret;
     ESP_LOGI(TAG, "Encoding an image");
+    encoder_context enc;
+    enc.image_height = IMAGE_HEIGHT;
+    enc.image_width = IMAGE_WIDTH;
+    enc.out_buf_sz = IMAGE_WIDTH * IMAGE_HEIGHT * 4;
+    enc.in_col_components = 3;
+    enc.in_col_space = JCS_RGB;
+    enc.out_buf_mem_alloc = IMAGE_HEIGHT * IMAGE_WIDTH * 4;
+    enc.output_buffer = malloc(enc.out_buf_mem_alloc);
+    enc.inp_buf = raw_image_start;
+    enc.quality = QUALITY;
 
-    encode_greyscale((unsigned char *) raw_image_start, output_buffer,
-                     &out_buf_sz, image_width, image_height);
+    ret = encode_image(&enc);
+    if (ret == ERR_INVALID_ARGS) {
+        ESP_LOGE(TAG, "Invalid Arguments Passed\tAborting program");
+        abort();
+    }
 
-    ESP_LOGI(TAG, "Encoded an image. out_size = %lu", out_buf_sz);
+    if (ret == SUCCESS) {
+        ESP_LOGI(TAG, "Success");
+    }
+
+    if (ret == OUT_OF_MEMORY) {
+        ESP_LOGE(TAG, "Out of memory\tAborting program");
+        abort();
+    }
 
     /* sending an email */
-    send_email(output_buffer, out_buf_sz);
+    send_email(enc.output_buffer, enc.out_buf_sz);
+    free(enc.output_buffer);
     vTaskDelete(NULL);
 }
 
 void app_main()
 {
     int codec_task_stack_size = 12 * 1024;
-    StackType_t *codec_task_stack = (StackType_t *) esp_audio_mem_calloc(1, codec_task_stack_size);
-    if(codec_task_stack == NULL) {
-        ESP_LOGE(TAG, "Error allocating stack for mp3 decoder");
-        return;
-    }
-    StaticTask_t *codec_task_buf = (StaticTask_t *) heap_caps_calloc(1, sizeof(StaticTask_t), MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
     init_smtp_client();
-    ESP_LOGI(TAG, "Creating jpeg task");
 
-    xTaskCreateStatic(&jpeg_encoder_task,
-                      "jpeg_enc_task",
-                      codec_task_stack_size,
-                      NULL,
-                      5,
-                      codec_task_stack,
-                      codec_task_buf);
+    xTaskCreate(&jpeg_encoder_task,
+                "jpeg_enc_task",
+                codec_task_stack_size,
+                NULL,
+                5,
+                NULL);
 
     vTaskDelay(1000);
 }

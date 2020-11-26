@@ -5,35 +5,45 @@
 #include <esp_log.h>
 #include <esp_err.h>
 
-#include "jpeglib.h"
 #include "esp_audio_mem.h"
 #include "smtp_client.h"
+#include "decoder.h"
+#define INPUT_BUF_SIZE 20 //kb
+#define INP_IMG_WIDTH 94
+#define INP_IMG_HEIGHT 94
 
-static const char *TAG = "[jpeg_decoder]";
+static const char *TAG = "jpeg_decoding";
 
-extern const uint8_t raw_image_start[] asm("_binary_esp_img_jpeg_start");
-extern const uint8_t raw_image_end[]   asm("_binary_esp_img_jpeg_end");
-
-unsigned long in_buf_sz = 12 * 1024; /* 12kB 12 times jpeg image size */
-unsigned char out_buf[96 * 96 * 12];
-unsigned long out_buf_sz;
+extern uint8_t raw_image_start[] asm("_binary_esp_img_col_jpeg_start");
+extern uint8_t raw_image_end[]   asm("_binary_esp_img_col_jpeg_end");
 
 static void jpeg_decoder_task(void *pvParameters)
 {
+    int ret;
     (void) pvParameters;
-
-    /* Fill in image data. Random numbers for now. */
-    //for (int i = 0; i < image_width * image_height; i++) {
-    //    input_buffer[i] = raw_image_start[i];
-    //}
-
+    decoder_context dec;
+    dec.in_buf_sz = INPUT_BUF_SIZE * 1024;
+    dec.out_buf_mem_alloc = INP_IMG_WIDTH * INP_IMG_HEIGHT * 12;
+    dec.out_buf = malloc(dec.out_buf_mem_alloc);
+    dec.out_color_space = JCS_GRAYSCALE;
+    dec.in_buf_start = raw_image_start;
+    dec.in_buf_end = raw_image_end;
     ESP_LOGI(TAG, "Decoding an image");
-
-    out_buf_sz = decode_jpeg((unsigned char *) raw_image_start, in_buf_sz, out_buf);
-    ESP_LOGD(TAG, "out buf sz = %ld", out_buf_sz);
-
+    ret = decode_jpeg(&dec);
+    if (ret == ERR_INVALID_ARG) {
+        ESP_LOGE(TAG, "Invalid Arguments Passed\tAborting program");
+        abort();
+    }
+    if (ret == SUCCESS) {
+        ESP_LOGI(TAG, "Success");
+    }
+    if (ret == OUT_OF_MEMORY) {
+        ESP_LOGE(TAG, "Out of memory\tAborting program");
+        abort();
+    }
     /* sending an email */
-    send_email(out_buf, out_buf_sz);
+    send_email(dec.out_buf, dec.out_buf_sz);
+    free(dec.out_buf);
     vTaskDelete(NULL);
 }
 
@@ -42,29 +52,12 @@ void app_main()
     int codec_task_stack_size = 12 * 1024;
     init_smtp_client();
 
-    //ESP_LOGI(TAG, "Creating jpeg task");
-#if 0
-    //StackType_t *codec_task_stack = (StackType_t *) esp_audio_mem_calloc(1, codec_task_stack_size);
-    //if(codec_task_stack == NULL) {
-    //    ESP_LOGE(TAG, "Error allocating stack for mp3 decoder");
-    //    return;
-    //}
-
-    //StaticTask_t *codec_task_buf = (StaticTask_t *) heap_caps_calloc(1, sizeof(StaticTask_t), MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
-    xTaskCreateStatic(&jpeg_decoder_task,
-                      "jpeg_dec_task",
-                      codec_task_stack_size,
-                      NULL,
-                      5,
-                      codec_task_stack,
-                      codec_task_buf);
-#else
     xTaskCreate(&jpeg_decoder_task,
                 "jpeg_dec_task",
                 codec_task_stack_size,
                 NULL,
                 5,
                 NULL);
-#endif
+
     vTaskDelay(1000);
 }

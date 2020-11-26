@@ -454,7 +454,7 @@ void send_email(unsigned char *image_data, unsigned int size)
     len = snprintf((char *) buf, BUF_SIZE,
                    "Content-Type: image/image/jpeg;name=esp_logo.jpeg\n"
                    "Content-Transfer-Encoding: base64\n"
-                   "Content-Disposition:attachment;filename=\"esp_logo.jpeg\"\n");
+                   "Content-Disposition:attachment;filename=\"dec_col_img.jpg\"\n");
     ret = write_ssl_data(&ssl, (unsigned char *) buf, len);
 
     /* Image contents... */
