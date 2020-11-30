@@ -1,3 +1,3 @@
-# jpeg encoder
+# Jpeg encoder
 
-This application takes greyscale raw input and encodes it in jpeg
+This application takes greyscale/colored raw input and encodes it in jpeg

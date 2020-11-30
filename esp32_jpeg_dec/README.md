@@ -1,3 +1,3 @@
-# jpeg encoder
+# Jpeg decoder
 
-This application takes greyscale raw input and encodes it in jpeg
+This application takes jpeg image as input and decodes it to raw format(both colored as well as grayscale jpeg images)
