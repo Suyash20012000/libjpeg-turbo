@@ -3,13 +3,13 @@
  *
  * This file was part of the Independent JPEG Group's software:
  * Copyright (C) 1991-1998, Thomas G. Lane.
- * Modification developed 2002-2009 by Guido Vollbeding.
+ * Modification developed 2002-2018 by Guido Vollbeding.
  * libjpeg-turbo Modifications:
- * Copyright (C) 2015, D. R. Commander.
+ * Copyright (C) 2015, 2020, D. R. Commander.
  * For conditions of distribution and use, see the accompanying README.ijg
  * file.
  *
- * This file contains a slow-but-accurate integer implementation of the
+ * This file contains a slower but more accurate integer implementation of the
  * inverse DCT (Discrete Cosine Transform).  In the IJG code, this routine
  * must also perform dequantization of the input coefficients.
  *
@@ -54,7 +54,8 @@
 #include "jinclude.h"
 #include "jpeglib.h"
 #include "jdct.h"               /* Private declarations for DCT subsystem */
-
+#include "common.h"
+#include "sys/time.h"
 #ifdef DCT_ISLOW_SUPPORTED
 
 
@@ -174,6 +175,7 @@ jpeg_idct_islow(j_decompress_ptr cinfo, jpeg_component_info *compptr,
                 JCOEFPTR coef_block, JSAMPARRAY output_buf,
                 JDIMENSION output_col)
 {
+  gettimeofday(&start, NULL);
   JLONG tmp0, tmp1, tmp2, tmp3;
   JLONG tmp10, tmp11, tmp12, tmp13;
   JLONG z1, z2, z3, z4, z5;
@@ -410,6 +412,8 @@ jpeg_idct_islow(j_decompress_ptr cinfo, jpeg_component_info *compptr,
 
     wsptr += DCTSIZE;           /* advance pointer to next row */
   }
+  gettimeofday(&end, NULL);
+  idct_islow = idct_islow + ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec));
 }
 
 #ifdef IDCT_SCALING_SUPPORTED
@@ -417,7 +421,7 @@ jpeg_idct_islow(j_decompress_ptr cinfo, jpeg_component_info *compptr,
 
 /*
  * Perform dequantization and inverse DCT on one block of coefficients,
- * producing a 7x7 output block.
+ * producing a reduced-size 7x7 output block.
  *
  * Optimized algorithm with 12 multiplications in the 1-D kernel.
  * cK represents sqrt(2) * cos(K*pi/14).
@@ -1258,7 +1262,7 @@ jpeg_idct_10x10(j_decompress_ptr cinfo, jpeg_component_info *compptr,
 
 /*
  * Perform dequantization and inverse DCT on one block of coefficients,
- * producing a 11x11 output block.
+ * producing an 11x11 output block.
  *
  * Optimized algorithm with 24 multiplications in the 1-D kernel.
  * cK represents sqrt(2) * cos(K*pi/22).
@@ -2398,7 +2402,7 @@ jpeg_idct_16x16(j_decompress_ptr cinfo, jpeg_component_info *compptr,
     tmp0 = DEQUANTIZE(inptr[DCTSIZE * 0], quantptr[DCTSIZE * 0]);
     tmp0 = LEFT_SHIFT(tmp0, CONST_BITS);
     /* Add fudge factor here for final descale. */
-    tmp0 += 1 << (CONST_BITS - PASS1_BITS - 1);
+    tmp0 += ONE << (CONST_BITS - PASS1_BITS - 1);
 
     z1 = DEQUANTIZE(inptr[DCTSIZE * 4], quantptr[DCTSIZE * 4]);
     tmp1 = MULTIPLY(z1, FIX(1.306562965));      /* c4[16] = c2[8] */

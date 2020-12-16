@@ -1,11 +1,19 @@
 #include "jpeg_turbo_dec.h"
-#include "Error_declarations.h"
+
+#include "jpeglib.h"
+#include "cderror.h"
+#include "sys/time.h"
+#include "../../../../common.h"
+static const char *TAG = "jpeg_dec";
+
 static const char *const cdjpeg_message_table[] = {
     NULL
 };
 
 int decode_jpeg(decoder_context *mgr)
 {
+    struct timeval start,end;
+    gettimeofday(&start, NULL);
     struct jpeg_decompress_struct cinfo;
     cinfo.out_color_space = mgr->out_color_space;
     struct jpeg_error_mgr jerr;
@@ -21,9 +29,9 @@ int decode_jpeg(decoder_context *mgr)
     jerr.last_addon_message = JMSG_LASTADDONCODE;
 
     if (mgr->in_buf == NULL || mgr->in_buf_sz == 0 || mgr->out_buf == NULL) {
-        return ERR_INVALID_ARG;
+        return JPEG_ERR_INVALID_ARG;
     }
-    
+
     /*specify data source for decompression*/
     jpeg_mem_src(&cinfo, mgr->in_buf , mgr->in_buf_sz);
 
@@ -34,18 +42,18 @@ int decode_jpeg(decoder_context *mgr)
     (void)jpeg_start_decompress(&cinfo);
 
     unsigned char *buf[3];
-    
+
     /* Process data */
     while (cinfo.output_scanline < (cinfo.output_height)) {
         buf[0] = mgr->out_buf + cinfo.image_width * cinfo.output_scanline * cinfo.out_color_components;
         if (cinfo.output_scanline >= cinfo.output_height) {
-        return OUT_OF_MEMORY;
+        return JPEG_ERR_NOMEM;
         }
         jpeg_read_scanlines(&cinfo, (JSAMPARRAY) buf, cinfo.output_height);
     };
-    
+
     if(cinfo.output_scanline < cinfo.output_height) {
-        return OUT_OF_MEMORY;
+        return JPEG_ERR_NOMEM;
     }
     mgr->out_buf_sz = cinfo.output_height * cinfo.output_width * cinfo.out_color_components;
     mgr->output_height = cinfo.output_height;
@@ -54,8 +62,18 @@ int decode_jpeg(decoder_context *mgr)
     /*Finish decompression and release memory.*/
     jpeg_finish_decompress(&cinfo);
     jpeg_destroy_decompress(&cinfo);
+    gettimeofday(&end, NULL);
+
+    total = ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)); 
+    printf("\nOverall time : %ld\n", total);
+    printf("\nDecompress onepass : %ld\n",decomp_onepass);
+    printf("\nProcess Data Simple main : %ld\n",process_data);
+    printf("\njpeg_idct_islow : %ld\n",idct_islow);
+    printf("\nyuv_rgb_convert : %ld\n",ycc_rgb_conv);
+    printf("\nsep_upsample : %ld\n",sep1_upsample);
+    printf("\ndecode_mcu : %ld\n",decode_mcu1);
 #ifdef PROGRESS_REPORT
     end_progress_monitor((j_common_ptr)&cinfo);
 #endif
-    return SUCCESS;
+    return JPEG_SUCCESS;
 }

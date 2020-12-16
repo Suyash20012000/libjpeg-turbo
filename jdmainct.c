@@ -18,8 +18,8 @@
 
 #include "jinclude.h"
 #include "jdmainct.h"
-
-
+#include "sys/time.h"
+#include "common.h"
 /*
  * In the current system design, the main buffer need never be a full-image
  * buffer; any full-height buffers will be found inside the coefficient or
@@ -292,6 +292,7 @@ METHODDEF(void)
 process_data_simple_main(j_decompress_ptr cinfo, JSAMPARRAY output_buf,
                          JDIMENSION *out_row_ctr, JDIMENSION out_rows_avail)
 {
+  gettimeofday(&start, NULL);
   my_main_ptr main_ptr = (my_main_ptr)cinfo->main;
   JDIMENSION rowgroups_avail;
 
@@ -319,6 +320,9 @@ process_data_simple_main(j_decompress_ptr cinfo, JSAMPARRAY output_buf,
     main_ptr->buffer_full = FALSE;
     main_ptr->rowgroup_ctr = 0;
   }
+  gettimeofday(&end, NULL);
+  process_data = process_data + ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)); 
+  
 }
 
 
