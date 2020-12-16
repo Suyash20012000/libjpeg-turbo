@@ -19,7 +19,7 @@
 #include "jpeglib.h"
 #include "jsimd.h"
 #include "jconfigint.h"
-
+#include "common.h"
 
 /* Private subobject */
 
@@ -254,6 +254,7 @@ METHODDEF(void)
 ycc_rgb_convert(j_decompress_ptr cinfo, JSAMPIMAGE input_buf,
                 JDIMENSION input_row, JSAMPARRAY output_buf, int num_rows)
 {
+  gettimeofday(&start,NULL);
   switch (cinfo->out_color_space) {
   case JCS_EXT_RGB:
     ycc_extrgb_convert_internal(cinfo, input_buf, input_row, output_buf,
@@ -288,6 +289,8 @@ ycc_rgb_convert(j_decompress_ptr cinfo, JSAMPIMAGE input_buf,
                              num_rows);
     break;
   }
+  gettimeofday(&end, NULL);
+  ycc_rgb_conv = ycc_rgb_conv +  ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)); 
 }
 
 

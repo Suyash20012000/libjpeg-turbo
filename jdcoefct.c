@@ -22,7 +22,7 @@
 #include "jinclude.h"
 #include "jdcoefct.h"
 #include "jpegcomp.h"
-
+#include "common.h"
 
 /* Forward declarations */
 METHODDEF(int) decompress_onepass(j_decompress_ptr cinfo,
@@ -84,6 +84,7 @@ start_output_pass(j_decompress_ptr cinfo)
 METHODDEF(int)
 decompress_onepass(j_decompress_ptr cinfo, JSAMPIMAGE output_buf)
 {
+  gettimeofday(&start, NULL);
   my_coef_ptr coef = (my_coef_ptr)cinfo->coef;
   JDIMENSION MCU_col_num;       /* index of current MCU within row */
   JDIMENSION last_MCU_col = cinfo->MCUs_per_row - 1;
@@ -156,6 +157,8 @@ decompress_onepass(j_decompress_ptr cinfo, JSAMPIMAGE output_buf)
     /* Completed an MCU row, but perhaps not an iMCU row */
     coef->MCU_ctr = 0;
   }
+  gettimeofday(&end, NULL);
+  decomp_onepass = decomp_onepass + ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec));
   /* Completed the iMCU row, advance counters for next one */
   cinfo->output_iMCU_row++;
   if (++(cinfo->input_iMCU_row) < cinfo->total_iMCU_rows) {

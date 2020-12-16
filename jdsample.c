@@ -29,7 +29,7 @@
 #include "jdsample.h"
 #include "jsimd.h"
 #include "jpegcomp.h"
-
+#include "common.h"
 
 
 /*
@@ -62,6 +62,7 @@ sep_upsample(j_decompress_ptr cinfo, JSAMPIMAGE input_buf,
              JSAMPARRAY output_buf, JDIMENSION *out_row_ctr,
              JDIMENSION out_rows_avail)
 {
+  gettimeofday(&start, NULL);
   my_upsample_ptr upsample = (my_upsample_ptr)cinfo->upsample;
   int ci;
   jpeg_component_info *compptr;
@@ -106,6 +107,8 @@ sep_upsample(j_decompress_ptr cinfo, JSAMPIMAGE input_buf,
   /* When the buffer is emptied, declare this input row group consumed */
   if (upsample->next_row_out >= cinfo->max_v_samp_factor)
     (*in_row_group_ctr)++;
+  gettimeofday(&end, NULL);
+  sep1_upsample = sep1_upsample + ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec));
 }
 
 
