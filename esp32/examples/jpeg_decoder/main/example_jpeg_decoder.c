@@ -7,25 +7,30 @@
 #include "smtp_client.h"
 #include "jpeg_turbo_dec.h"
 
+#include "sys/time.h"
+#include "common.h"
+
 #define INPUT_BUF_SIZE (20 * 1024)
 #define INP_IMG_WIDTH 94
 #define INP_IMG_HEIGHT 94
 
 static const char *TAG = "[jpeg_decoder]";
 
-extern uint8_t raw_image_start[] asm("_binary_esp_img_col_jpeg_start");
-extern uint8_t raw_image_end[]   asm("_binary_esp_img_col_jpeg_end");
+extern uint8_t raw_image_start[] asm("_binary_test2_100_jpeg_start");
+extern uint8_t raw_image_end[]   asm("_binary_test2_100_jpeg_end");
 
 static void jpeg_decoder_task(void *pvParameters)
 {
     (void) pvParameters;
+
     int ret;
     decoder_context dec;
     dec.in_buf_sz = INPUT_BUF_SIZE;
     dec.out_buf = malloc(INP_IMG_WIDTH * INP_IMG_HEIGHT * 12);
-    dec.out_color_space = JPEG_COLOR_RGB;
+    dec.out_color_space = JPEG_COLOR_GRAYSCALE;
     dec.in_buf = raw_image_start;
     ESP_LOGI(TAG, "Decoding an image");
+
     ret = decode_jpeg(&dec);
 
     if (ret == JPEG_ERR_INVALID_ARG) {

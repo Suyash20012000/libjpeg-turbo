@@ -54,7 +54,8 @@
 #include "jinclude.h"
 #include "jpeglib.h"
 #include "jdct.h"               /* Private declarations for DCT subsystem */
-
+#include "common.h"
+#include "sys/time.h"
 #ifdef DCT_ISLOW_SUPPORTED
 
 
@@ -174,6 +175,7 @@ jpeg_idct_islow(j_decompress_ptr cinfo, jpeg_component_info *compptr,
                 JCOEFPTR coef_block, JSAMPARRAY output_buf,
                 JDIMENSION output_col)
 {
+  gettimeofday(&start, NULL);
   JLONG tmp0, tmp1, tmp2, tmp3;
   JLONG tmp10, tmp11, tmp12, tmp13;
   JLONG z1, z2, z3, z4, z5;
@@ -410,6 +412,8 @@ jpeg_idct_islow(j_decompress_ptr cinfo, jpeg_component_info *compptr,
 
     wsptr += DCTSIZE;           /* advance pointer to next row */
   }
+  gettimeofday(&end, NULL);
+  idct_islow = idct_islow + ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec));
 }
 
 #ifdef IDCT_SCALING_SUPPORTED

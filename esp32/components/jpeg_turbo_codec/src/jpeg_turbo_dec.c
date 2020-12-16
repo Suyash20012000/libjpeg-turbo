@@ -2,7 +2,8 @@
 
 #include "jpeglib.h"
 #include "cderror.h"
-
+#include "sys/time.h"
+#include "../../../../common.h"
 static const char *TAG = "jpeg_dec";
 
 static const char *const cdjpeg_message_table[] = {
@@ -11,6 +12,8 @@ static const char *const cdjpeg_message_table[] = {
 
 int decode_jpeg(decoder_context *mgr)
 {
+    struct timeval start,end;
+    gettimeofday(&start, NULL);
     struct jpeg_decompress_struct cinfo;
     cinfo.out_color_space = mgr->out_color_space;
     struct jpeg_error_mgr jerr;
@@ -59,6 +62,16 @@ int decode_jpeg(decoder_context *mgr)
     /*Finish decompression and release memory.*/
     jpeg_finish_decompress(&cinfo);
     jpeg_destroy_decompress(&cinfo);
+    gettimeofday(&end, NULL);
+
+    total = ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)); 
+    printf("\nOverall time : %ld\n", total);
+    printf("\nDecompress onepass : %ld\n",decomp_onepass);
+    printf("\nProcess Data Simple main : %ld\n",process_data);
+    printf("\njpeg_idct_islow : %ld\n",idct_islow);
+    printf("\nyuv_rgb_convert : %ld\n",ycc_rgb_conv);
+    printf("\nsep_upsample : %ld\n",sep1_upsample);
+    printf("\ndecode_mcu : %ld\n",decode_mcu1);
 #ifdef PROGRESS_REPORT
     end_progress_monitor((j_common_ptr)&cinfo);
 #endif

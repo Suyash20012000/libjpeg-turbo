@@ -27,7 +27,8 @@
 #include "jdhuff.h"             /* Declarations shared with jdphuff.c */
 #include "jpegcomp.h"
 #include "jstdhuff.c"
-
+#include "sys/time.h"
+#include "common.h"
 
 /*
  * Expanded entropy decoder object for Huffman decoding.
@@ -748,6 +749,8 @@ decode_mcu_fast(j_decompress_ptr cinfo, JBLOCKROW *MCU_data)
 METHODDEF(boolean)
 decode_mcu(j_decompress_ptr cinfo, JBLOCKROW *MCU_data)
 {
+  gettimeofday(&start, NULL);
+
   huff_entropy_ptr entropy = (huff_entropy_ptr)cinfo->entropy;
   int usefast = 1;
 
@@ -779,6 +782,8 @@ use_slow:
 
   /* Account for restart interval (no-op if not using restarts) */
   entropy->restarts_to_go--;
+  gettimeofday(&end, NULL);
+  decode_mcu1 =decode_mcu1 + ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)); 
 
   return TRUE;
 }
