@@ -21,8 +21,8 @@
 
 static const char *TAG = "jpeg_enc";
 
-extern uint8_t raw_image_start[] asm("_binary_raw_img_start");
-extern uint8_t raw_image_end[]   asm("_binary_raw_img_end");
+extern uint8_t raw_image_start[] asm("_binary_raw_image_start");
+extern uint8_t raw_image_end[]   asm("_binary_raw_image_end");
 
 static void jpeg_encoder_task(void *pvParameters)
 {
@@ -33,8 +33,8 @@ static void jpeg_encoder_task(void *pvParameters)
     enc.image_height = IMAGE_HEIGHT;
     enc.image_width = IMAGE_WIDTH;
     enc.out_buf_sz = IMAGE_WIDTH * IMAGE_HEIGHT * 4;
-    enc.in_col_components = 3;
-    enc.in_col_space = JPEG_COLOR_RGB;
+    enc.in_col_components = 1;
+    enc.in_col_space = JPEG_COLOR_GRAYSCALE;
     enc.output_buffer = malloc(IMAGE_HEIGHT * IMAGE_WIDTH * 4);
     enc.inp_buf = raw_image_start;
     enc.quality = QUALITY;

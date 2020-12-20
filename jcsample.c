@@ -54,7 +54,7 @@
 #include "jinclude.h"
 #include "jpeglib.h"
 #include "jsimd.h"
-
+#include "common.h"
 
 /* Pointer to routine to downsample a single component */
 typedef void (*downsample1_ptr) (j_compress_ptr cinfo,
@@ -122,6 +122,7 @@ sep_downsample(j_compress_ptr cinfo, JSAMPIMAGE input_buf,
                JDIMENSION in_row_index, JSAMPIMAGE output_buf,
                JDIMENSION out_row_group_index)
 {
+  gettimeofday(&start,NULL);
   my_downsample_ptr downsample = (my_downsample_ptr)cinfo->downsample;
   int ci;
   jpeg_component_info *compptr;
@@ -133,6 +134,8 @@ sep_downsample(j_compress_ptr cinfo, JSAMPIMAGE input_buf,
     out_ptr = output_buf[ci] + (out_row_group_index * compptr->v_samp_factor);
     (*downsample->methods[ci]) (cinfo, compptr, in_ptr, out_ptr);
   }
+  gettimeofday(&end,NULL);
+  sep_downs += ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)); 
 }
 
 

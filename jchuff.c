@@ -29,7 +29,7 @@
 #include "jsimd.h"
 #include "jconfigint.h"
 #include <limits.h>
-
+#include "common.h"
 /*
  * NOTE: If USE_CLZ_INTRINSIC is defined, then clz/bsr instructions will be
  * used for bit counting rather than the lookup table.  This will reduce the
@@ -679,6 +679,7 @@ emit_restart(working_state *state, int restart_num)
 METHODDEF(boolean)
 encode_mcu_huff(j_compress_ptr cinfo, JBLOCKROW *MCU_data)
 {
+  gettimeofday(&start,NULL);
   huff_entropy_ptr entropy = (huff_entropy_ptr)cinfo->entropy;
   working_state state;
   int blkn, ci;
@@ -739,7 +740,8 @@ encode_mcu_huff(j_compress_ptr cinfo, JBLOCKROW *MCU_data)
     }
     entropy->restarts_to_go--;
   }
-
+  gettimeofday(&end,NULL);
+  enc_mcu += ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)); 
   return TRUE;
 }
 

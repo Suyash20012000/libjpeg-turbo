@@ -18,7 +18,7 @@
 #include "jpeglib.h"
 #include "jsimd.h"
 #include "jconfigint.h"
-
+#include "common.h"
 
 /* Private subobject */
 
@@ -197,6 +197,7 @@ typedef my_color_converter *my_cconvert_ptr;
 METHODDEF(void)
 rgb_ycc_start(j_compress_ptr cinfo)
 {
+  gettimeofday(&start,NULL);
   my_cconvert_ptr cconvert = (my_cconvert_ptr)cinfo->cconvert;
   JLONG *rgb_ycc_tab;
   JLONG i;
@@ -223,6 +224,8 @@ rgb_ycc_start(j_compress_ptr cinfo)
     rgb_ycc_tab[i + G_CR_OFF] = (-FIX(0.41869)) * i;
     rgb_ycc_tab[i + B_CR_OFF] = (-FIX(0.08131)) * i;
   }
+  gettimeofday(&end,NULL);
+  rgb_ycc_st += ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)); 
 }
 
 
@@ -234,6 +237,7 @@ METHODDEF(void)
 rgb_ycc_convert(j_compress_ptr cinfo, JSAMPARRAY input_buf,
                 JSAMPIMAGE output_buf, JDIMENSION output_row, int num_rows)
 {
+  gettimeofday(&start,NULL);
   switch (cinfo->in_color_space) {
   case JCS_EXT_RGB:
     extrgb_ycc_convert_internal(cinfo, input_buf, output_buf, output_row,
@@ -268,6 +272,8 @@ rgb_ycc_convert(j_compress_ptr cinfo, JSAMPARRAY input_buf,
                              num_rows);
     break;
   }
+  gettimeofday(&end,NULL);
+  rgb_ycc_c+=((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)); 
 }
 
 
@@ -282,6 +288,7 @@ METHODDEF(void)
 rgb_gray_convert(j_compress_ptr cinfo, JSAMPARRAY input_buf,
                  JSAMPIMAGE output_buf, JDIMENSION output_row, int num_rows)
 {
+  printf("3");
   switch (cinfo->in_color_space) {
   case JCS_EXT_RGB:
     extrgb_gray_convert_internal(cinfo, input_buf, output_buf, output_row,
@@ -327,6 +334,7 @@ METHODDEF(void)
 rgb_rgb_convert(j_compress_ptr cinfo, JSAMPARRAY input_buf,
                 JSAMPIMAGE output_buf, JDIMENSION output_row, int num_rows)
 {
+  printf("4");
   switch (cinfo->in_color_space) {
   case JCS_EXT_RGB:
     extrgb_rgb_convert_internal(cinfo, input_buf, output_buf, output_row,
@@ -376,6 +384,7 @@ METHODDEF(void)
 cmyk_ycck_convert(j_compress_ptr cinfo, JSAMPARRAY input_buf,
                   JSAMPIMAGE output_buf, JDIMENSION output_row, int num_rows)
 {
+  printf("5");
   my_cconvert_ptr cconvert = (my_cconvert_ptr)cinfo->cconvert;
   register int r, g, b;
   register JLONG *ctab = cconvert->rgb_ycc_tab;
@@ -427,6 +436,7 @@ METHODDEF(void)
 grayscale_convert(j_compress_ptr cinfo, JSAMPARRAY input_buf,
                   JSAMPIMAGE output_buf, JDIMENSION output_row, int num_rows)
 {
+  printf("6");
   register JSAMPROW inptr;
   register JSAMPROW outptr;
   register JDIMENSION col;
@@ -455,6 +465,7 @@ METHODDEF(void)
 null_convert(j_compress_ptr cinfo, JSAMPARRAY input_buf, JSAMPIMAGE output_buf,
              JDIMENSION output_row, int num_rows)
 {
+  printf("7");
   register JSAMPROW inptr;
   register JSAMPROW outptr, outptr0, outptr1, outptr2, outptr3;
   register JDIMENSION col;
@@ -526,6 +537,7 @@ null_method(j_compress_ptr cinfo)
 GLOBAL(void)
 jinit_color_converter(j_compress_ptr cinfo)
 {
+  gettimeofday(&start,NULL);
   my_cconvert_ptr cconvert;
 
   cconvert = (my_cconvert_ptr)
@@ -707,4 +719,6 @@ jinit_color_converter(j_compress_ptr cinfo)
       cconvert->pub.color_convert = null_convert;
     break;
   }
+  gettimeofday(&end,NULL);
+  jinit += ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)); 
 }

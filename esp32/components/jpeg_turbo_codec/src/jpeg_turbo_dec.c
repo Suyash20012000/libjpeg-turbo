@@ -14,6 +14,7 @@ int decode_jpeg(decoder_context *mgr)
 {
     struct timeval start,end;
     gettimeofday(&start, NULL);
+
     struct jpeg_decompress_struct cinfo;
     cinfo.out_color_space = mgr->out_color_space;
     struct jpeg_error_mgr jerr;
@@ -62,10 +63,10 @@ int decode_jpeg(decoder_context *mgr)
     /*Finish decompression and release memory.*/
     jpeg_finish_decompress(&cinfo);
     jpeg_destroy_decompress(&cinfo);
-
     gettimeofday(&end, NULL);
+    total += ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)); 
 
-    total = ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)); 
+    //total = ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)); 
     printf("\nOverall time : %ld\n", total);
     printf("\nDecompress onepass : %ld\n",decomp_onepass);
     printf("\nProcess Data Simple main : %ld\n",process_data);

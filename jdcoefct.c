@@ -23,7 +23,6 @@
 #include "jdcoefct.h"
 #include "jpegcomp.h"
 #include "common.h"
-
 /* Forward declarations */
 METHODDEF(int) decompress_onepass(j_decompress_ptr cinfo,
                                   JSAMPIMAGE output_buf);
@@ -158,7 +157,7 @@ decompress_onepass(j_decompress_ptr cinfo, JSAMPIMAGE output_buf)
     coef->MCU_ctr = 0;
   }
   gettimeofday(&end, NULL);
-  decomp_onepass = decomp_onepass + ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec));
+  decomp_onepass = decomp_onepass + ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)); 
   /* Completed the iMCU row, advance counters for next one */
   cinfo->output_iMCU_row++;
   if (++(cinfo->input_iMCU_row) < cinfo->total_iMCU_rows) {

@@ -21,7 +21,7 @@
 #include "jpeglib.h"
 #include "jdct.h"               /* Private declarations for DCT subsystem */
 #include "jsimddct.h"
-
+#include "common.h"
 
 /* Private subobject for this module */
 
@@ -372,6 +372,7 @@ start_pass_fdctmgr(j_compress_ptr cinfo)
 METHODDEF(void)
 convsamp(JSAMPARRAY sample_data, JDIMENSION start_col, DCTELEM *workspace)
 {
+  gettimeofday(&start,NULL);
   register DCTELEM *workspaceptr;
   register JSAMPROW elemptr;
   register int elemr;
@@ -397,6 +398,8 @@ convsamp(JSAMPARRAY sample_data, JDIMENSION start_col, DCTELEM *workspace)
     }
 #endif
   }
+  gettimeofday(&end,NULL);
+  conv += ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)); 
 }
 
 
@@ -407,6 +410,7 @@ convsamp(JSAMPARRAY sample_data, JDIMENSION start_col, DCTELEM *workspace)
 METHODDEF(void)
 quantize(JCOEFPTR coef_block, DCTELEM *divisors, DCTELEM *workspace)
 {
+  gettimeofday(&start,NULL);
   int i;
   DCTELEM temp;
   JCOEFPTR output_ptr = coef_block;
@@ -474,7 +478,8 @@ quantize(JCOEFPTR coef_block, DCTELEM *divisors, DCTELEM *workspace)
   }
 
 #endif
-
+  gettimeofday(&end,NULL);
+  quant += ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)); 
 }
 
 
@@ -492,6 +497,7 @@ forward_DCT(j_compress_ptr cinfo, jpeg_component_info *compptr,
             JDIMENSION start_row, JDIMENSION start_col, JDIMENSION num_blocks)
 /* This version is used for integer DCT implementations. */
 {
+  gettimeofday(&start,NULL);
   /* This routine is heavily used, so it's worth coding it tightly. */
   my_fdct_ptr fdct = (my_fdct_ptr)cinfo->fdct;
   DCTELEM *divisors = fdct->divisors[compptr->quant_tbl_no];
@@ -516,6 +522,8 @@ forward_DCT(j_compress_ptr cinfo, jpeg_component_info *compptr,
     /* Quantize/descale the coefficients, and store into coef_blocks[] */
     (*do_quantize) (coef_blocks[bi], divisors, workspace);
   }
+  gettimeofday(&end,NULL);
+  forward_dct += ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)); 
 }
 
 

@@ -15,7 +15,7 @@
  * applications using the library shouldn't need to include this file.
  */
 
-
+#pragma once
 /* Declarations for both compression & decompression */
 
 typedef enum {            /* Operating modes for buffer controllers */

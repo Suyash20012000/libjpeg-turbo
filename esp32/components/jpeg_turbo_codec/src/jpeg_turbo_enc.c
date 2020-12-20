@@ -3,7 +3,8 @@
 
 #include "jpeglib.h"
 #include "cderror.h"
-
+#include "../../../../common.h"
+#include "sys/time.h"
 static const char *TAG = "jpeg_enc";
 
 static const char *const cdjpeg_message_table[] = {
@@ -12,6 +13,8 @@ static const char *const cdjpeg_message_table[] = {
 
 int encode_image(encoder_context *mgr)
 {
+    struct timeval start,end,start1,end1;
+    gettimeofday(&start,NULL);
     if (mgr->output_buffer == NULL || mgr->image_height == 0 ||
         mgr->image_width == 0 || mgr->in_col_components == 0 ||
         mgr->in_col_space == JPEG_COLOR_UNKNOWN || mgr->inp_buf == NULL ||
@@ -27,7 +30,10 @@ int encode_image(encoder_context *mgr)
 
     /* Initialize the JPEG compression object with default error handling. */
     cinfo.err = jpeg_std_error(&jerr);
+    gettimeofday(&start1,NULL);
     jpeg_create_compress(&cinfo);
+    gettimeofday(&end1,NULL);
+    create_comp = ((end1.tv_sec * 1000000 + end1.tv_usec) - (start1.tv_sec * 1000000 + start1.tv_usec)); 
     /* Add some application-specific error messages (from cderror.h) */
     jerr.addon_message_table = cdjpeg_message_table;
     jerr.first_addon_message = JMSG_FIRSTADDONCODE;
@@ -79,6 +85,20 @@ int encode_image(encoder_context *mgr)
     /* Finish compression and release memory */
     jpeg_finish_compress(&cinfo);
     jpeg_destroy_compress(&cinfo);
+    gettimeofday(&end,NULL);
+    total  = ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)); 
+    printf("\nOverall Enc Time : %ld\n",total);
+    printf("\njpeg_create_compress : %ld\n",create_comp);
+    printf("\nencode_mcu_huff : %ld\n",enc_mcu);
+    printf("\nprocess_data_simple_main : %ld\n",process_data);
+    printf("\nforward_DCT : %ld \n",forward_dct);
+    printf("\nquantize : %ld \n",quant);
+    printf("\nconvsamp : %ld \n",conv);
+    printf("\njpeg_fdct_islow : %ld \n",fdct_islow);
+    printf("\nrgb_ycc_start : %ld \n",rgb_ycc_st);
+    printf("\nrgb_ycc_convert : %ld \n",rgb_ycc_c);
+    printf("\njinit_color_converter : %ld \n",jinit);
+    printf("\nsep_downsample : %ld\n",sep_downs);
 
 #ifdef PROGRESS_REPORT
     end_progress_monitor((j_common_ptr)&cinfo);

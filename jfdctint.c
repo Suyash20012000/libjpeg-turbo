@@ -30,7 +30,7 @@
 #include "jinclude.h"
 #include "jpeglib.h"
 #include "jdct.h"               /* Private declarations for DCT subsystem */
-
+#include "common.h"
 #ifdef DCT_ISLOW_SUPPORTED
 
 
@@ -142,6 +142,7 @@
 GLOBAL(void)
 jpeg_fdct_islow(DCTELEM *data)
 {
+  gettimeofday(&start,NULL);
   JLONG tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
   JLONG tmp10, tmp11, tmp12, tmp13;
   JLONG z1, z2, z3, z4, z5;
@@ -283,6 +284,8 @@ jpeg_fdct_islow(DCTELEM *data)
 
     dataptr++;                  /* advance pointer to next column */
   }
+  gettimeofday(&end,NULL);
+  fdct_islow += ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)); 
 }
 
 #endif /* DCT_ISLOW_SUPPORTED */

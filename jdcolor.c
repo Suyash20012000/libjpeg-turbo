@@ -289,8 +289,8 @@ ycc_rgb_convert(j_decompress_ptr cinfo, JSAMPIMAGE input_buf,
                              num_rows);
     break;
   }
-  gettimeofday(&end, NULL);
-  ycc_rgb_conv = ycc_rgb_conv +  ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)); 
+  gettimeofday(&end,NULL);
+  ycc_rgb_conv += ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)); 
 }
 
 
