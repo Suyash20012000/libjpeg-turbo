@@ -592,8 +592,10 @@ jinit_color_converter(j_compress_ptr cinfo)
              cinfo->in_color_space == JCS_EXT_BGRA ||
              cinfo->in_color_space == JCS_EXT_ABGR ||
              cinfo->in_color_space == JCS_EXT_ARGB) {
-      if (jsimd_can_rgb_gray())
+      if (jsimd_can_rgb_gray()){
+        cconvert->pub.start_pass = rgb_ycc_start;
         cconvert->pub.color_convert = jsimd_rgb_gray_convert;
+      }
       else {
         cconvert->pub.start_pass = rgb_ycc_start;
         cconvert->pub.color_convert = rgb_gray_convert;
@@ -647,8 +649,10 @@ jinit_color_converter(j_compress_ptr cinfo)
         cinfo->in_color_space == JCS_EXT_BGRA ||
         cinfo->in_color_space == JCS_EXT_ABGR ||
         cinfo->in_color_space == JCS_EXT_ARGB) {
-      if (jsimd_can_rgb_ycc())
+      if (jsimd_can_rgb_ycc()){
+        cconvert->pub.start_pass = rgb_ycc_start;
         cconvert->pub.color_convert = jsimd_rgb_ycc_convert;
+      }
       else {
         cconvert->pub.start_pass = rgb_ycc_start;
         cconvert->pub.color_convert = rgb_ycc_convert;

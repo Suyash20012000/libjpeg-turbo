@@ -804,8 +804,10 @@ jinit_color_deconverter(j_decompress_ptr cinfo)
   case JCS_EXT_ARGB:
     cinfo->out_color_components = rgb_pixelsize[cinfo->out_color_space];
     if (cinfo->jpeg_color_space == JCS_YCbCr) {
-      if (jsimd_can_ycc_rgb())
+      if (jsimd_can_ycc_rgb()){
         cconvert->pub.color_convert = jsimd_ycc_rgb_convert;
+        build_ycc_rgb_table(cinfo);
+      }
       else {
         cconvert->pub.color_convert = ycc_rgb_convert;
         build_ycc_rgb_table(cinfo);
